@@ -1,41 +1,53 @@
-﻿@model DogGo.Models.Walker
+﻿@model DogGo.Models.ViewModels.WalkerProfileViewModel
 
 @{
     ViewData["Title"] = "Details";
+    int totalWalkTime = Model.Walk.Sum(w => w.Duration) / 60;
+    int hours = totalWalkTime / 60;
+    int minutes = totalWalkTime % 60;
 }
 
-<h1>Details</h1>
+<h1>Walker Profile</h1>
 
-<div>
-    <h4>Walker</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Id)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Id)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NeighborhoodId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NeighborhoodId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ImageUrl)
-        </dt>
-        <dd class = "col-sm-10">
-            <img class="bg-info" src="@Model.ImageUrl" alt="avatar" />
-        </dd>
-    </dl>
+<div class="d-flex align-items-center">
+    <img class="bg-info mr-3" src="@Model.Walker.ImageUrl" alt="avatar" style="width: 150px; height: 150px;" />
+    <div>
+        <p>Name: @Model.Walker.Name</p>
+        <p>Neighborhood: @Model.Neighborhood.Name</p>
+    </div>
 </div>
+
+<div class="row">
+    <div class="col-md-6 bg-light">
+        <h1>Recent Walks</h1>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var walk in Model.Walk)
+                {
+                    <tr>
+                        <td>@walk.Date.ToString("d")</td>
+                        <td>@walk.OwnerName</td>
+                        <td>@(walk.Duration / 60) min</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-6 bg-secondary">
+        <h2><span style="color: lightgray;">Total Walk Time:</span> @hours hr @minutes min</h2>
+    </div>
+
+</div>
+
 <div>
     @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
     <a asp-action="Index">Back to List</a>
