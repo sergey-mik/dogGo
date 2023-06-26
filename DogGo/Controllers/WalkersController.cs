@@ -4,6 +4,7 @@ using DogGo.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace DogGo.Controllers
 {
@@ -23,29 +24,41 @@ namespace DogGo.Controllers
             _ownerRepo = ownerRepository;
         }
 
-        // GET: Walkers
-        public ActionResult Index(int? ownerId)
+        private int GetCurrentUserId()
         {
-            List<Walker> walkers;
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (User.Identity.IsAuthenticated && ownerId.HasValue)
+            if (int.TryParse(userIdString, out int userId))
             {
-                Owner owner = _ownerRepo.GetOwnerById(ownerId.Value);
+                return userId;
+            }
+
+            return 0;
+        }
+
+        // GET: Walkers
+        public ActionResult Index()
+        {
+            int userId = GetCurrentUserId();
+
+            if (userId == 0)
+            {
+                List<Walker> walkers = _walkerRepo.GetAllWalkers();
+                return View(walkers);
+            }
+            else
+            {
+                // Fetch the owner using the user ID
+                Owner owner = _ownerRepo.GetOwnerById(userId);
+
                 if (owner == null)
                 {
                     return NotFound();
                 }
 
-                int ownerNeighborhoodId = owner.NeighborhoodId;
-                walkers = _walkerRepo.GetWalkersInNeighborhood(ownerNeighborhoodId);
+                List<Walker> walkers = _walkerRepo.GetWalkersInNeighborhood(owner.NeighborhoodId);
+                return View(walkers);
             }
-            else
-            {
-                // Entire list of walkers if the user is not logged in or ownerId is not provided
-                walkers = _walkerRepo.GetAllWalkers();
-            }
-
-            return View(walkers);
         }
 
         // GET: WalkersController/Details/5
